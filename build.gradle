@@ -26,91 +26,84 @@ repositories {
 }
 
 dependencies {
-    //There are 2 ways to list the dependency information.  This way is the short cut
-    compile 'ch.qos.logback:logback-classic:1.1.1'
+    // Replaced deprecated 'compile' with 'implementation'
+    implementation 'ch.qos.logback:logback-classic:1.1.1'
+    
+    // Replaced deprecated 'compile' with 'implementation' for Groovy
+    implementation 'org.codehaus.groovy:groovy-all:2.2.0'
+    
+    // Replaced deprecated 'compile' with 'implementation' for Guice
+    implementation 'com.google.inject:guice:3.0'
+    
+    // Replaced deprecated 'testCompile' with 'testImplementation' for TestNG
+    testImplementation 'org.testng:testng:6.8.+'
+    
+    // Assertion library for testing
+    testImplementation 'org.easytesting:fest-assert-core:2.0M10'
 
-    //Groovy information to compile groovy code
-    compile 'org.codehaus.groovy:groovy-all:2.2.0'
-
-    //Needed to help with injections for TestNG listeners
-    compile 'com.google.inject:guice:3.0'
-
-    //This way is the long cut
-    //This is the TestNG test execution library that is better than JUnit
-    //Adding a + for a version number means get the latest number for that version.  So in this case get the latest 6.8.whatever deployment
-    testCompile group: 'org.testng', name: 'testng', version: '6.8.+'
-
-    //An assertion library that is better than JUnit defaults
-    testCompile 'org.easytesting:fest-assert-core:2.0M10'
-
-    //Better reporting for testng.  It outputs a nice html report
-    testCompile 'org.uncommons:reportng:1.1.4'
-
+    // Better reporting for TestNG
+    testImplementation 'org.uncommons:reportng:1.1.4'
 }
 
-//Sample task that will be recorded in the gradle tasks call.  Calling this task will print out Hello World!
-task hello << {
-    println 'Hello World!'
-}
-
-//Example customization of MANIFEST.MF
-version = '1.0'
-jar {
-    manifest {
-        attributes 'Implementation-Title': 'Gradle Example', 'Implementation-Version':version
+// Sample task that will be recorded in the gradle tasks call.  Calling this task will print out Hello World!
+task hello {
+    doLast {
+        println 'Hello World!'
     }
 }
 
-//Setup the test task
+// Example customization of MANIFEST.MF
+version = '1.0'
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Example', 'Implementation-Version': version
+    }
+}
+
+// Setup the test task
 test {
-    useTestNG() {
+    useTestNG()
 
-    //Here is where you can add listeners for testng and add the reporting for reportng
-        listeners << 'org.uncommons.reportng.HTMLReporter'
-        listeners << 'org.uncommons.reportng.JUnitXMLReporter'
+    // Here is where you can add listeners for TestNG and add the reporting for ReportNG
+    doLast {
+        listeners.add('org.uncommons.reportng.HTMLReporter')
+        listeners.add('org.uncommons.reportng.JUnitXMLReporter')
 
-        //The variables are stored in the gradle.properties file.  excludedGroups has a default and can be passed in.  includedGroups has default of empty and can be passed in.
+        // The variables are stored in the gradle.properties file. excludedGroups has a default and can be passed in.
         // If includedGroups is empty it will execute all tests that aren't in the excluded groups
         excludeGroups << excludedGroups
         includeGroups << includedGroups
     }
 
-    //Disable the default groovy html reports since ReportNG is being used
+    // Disable the default Groovy HTML reports since ReportNG is being used
     reports.html.enabled = false
 
-    //Interceptors
+    // Interceptors
     beforeTest { desc ->
-       println "\n*** Starting execution of test ${desc.className}.${desc.name} ***"
+        println "\n*** Starting execution of test ${desc.className}.${desc.name} ***"
     }
     afterTest { descriptor, result ->
-        println "<<< Test ${descriptor.name} resulted in ${result.resultType} and took "+getElaspedTime(result.endTime - result.startTime)+" >>>\n"
+        println "<<< Test ${descriptor.name} resulted in ${result.resultType} and took " +
+                getElaspedTime(result.endTime - result.startTime) + " >>>\n"
     }
 
-    //Modify the test logging
+    // Modify the test logging
     testLogging {
         showStandardStreams = true
         exceptionFormat "full"
     }
 }
 
-//Example of being able to use methods inside the build file
+// Example of being able to use methods inside the build file
 def getElaspedTime(def time) {
-
-    if(time / 1000 < 1)
-    {
-        return String.format("0 min, %.3f sec", time/1000)
-    }
-    else
-    {
+    if (time / 1000 < 1) {
+        return String.format("0 min, %.3f sec", time / 1000)
+    } else {
         return String.format("%d min, %d sec",
                 TimeUnit.MILLISECONDS.toMinutes(time),
                 TimeUnit.MILLISECONDS.toSeconds(time) -
                         TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(time))
-
         )
     }
 }
-
-
-
 
